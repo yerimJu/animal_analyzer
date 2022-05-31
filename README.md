@@ -1,4 +1,4 @@
-# my_first_app
+# Animal Analyzer
 
 A new Flutter project.
 
