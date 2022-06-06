@@ -19,18 +19,65 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Animal Analyzer Demo'),
         ),
-        body: const MyStatelessWidget(),
+        body: const MyStatefulWidget(),
         // body: Center(child: showGrid ? _buildGrid() : _buildList()),
       ),
     );
   }
 }
 
-class MyStatelessWidget extends StatelessWidget {
-  const MyStatelessWidget({Key? key}) : super(key: key);
+// #docregion FavoriteWidget
+class MyStatefulWidget extends StatefulWidget {
+  const MyStatefulWidget({super.key});
+
+  @override
+  MyStatelessWidget createState() => MyStatelessWidget();
+}
+
+class MyStatelessWidget extends State<MyStatefulWidget> {
+  // const MyStatelessWidget({Key? key}) : super(key: key);
+  static const _picCounts = 10;
+  int _selectedPicNum = -1;
+
+  void _setPicNum(i) {
+    setState(() {
+      _selectedPicNum = i;
+    });
+    debugPrint("[_setPicNum] ${_selectedPicNum.toString()}");
+  }
 
   List<Container> _buildGridTileList(int count) => List.generate(
-      count, (i) => Container(child: Image.asset('images/pic$i.jpg')));
+      count,
+      (i) => Container(
+          child: InkWell(
+              onTap: () {
+                // debugPrint('[_buildGridTileList] Received click from pic$i');
+                _setPicNum(i);
+              },
+              child: Ink.image(
+                image: AssetImage('images/pic$i.jpg'),
+                fit: BoxFit.cover,
+                child: _selectedPicNum == i
+                    ? InkWell(
+                        onTap: () {
+                          debugPrint("[InkWell] clicked ${i}th img");
+                        },
+                        child: const Align(
+                          child: Padding(
+                            padding: EdgeInsets.all(10.0),
+                            child: Text(
+                              'SELECTED',
+                              style: TextStyle(
+                                fontSize: 50,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : null,
+              ))));
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +88,19 @@ class MyStatelessWidget extends StatelessWidget {
         TextButton(
           onPressed: () {
             debugPrint('[AlertDialog] Received cancel');
+            Navigator.pop(context, false);
           },
           child: const Text('CANCEL'),
         ),
         TextButton(
           onPressed: () {
             debugPrint('[AlertDialog] Received submit');
+            Navigator.pop(context, false);
             Navigator.push(
               context,
               MaterialPageRoute<void>(
-                builder: (BuildContext context) => const FullScreenDialog(),
+                builder: (BuildContext context) =>
+                    FullScreenDialog(picNum: _selectedPicNum),
                 fullscreenDialog: true,
               ),
             );
@@ -59,6 +109,21 @@ class MyStatelessWidget extends StatelessWidget {
         ),
       ],
     );
+
+    final AlertDialog dialogForValid = AlertDialog(
+      title: const Text('Alert'),
+      content: const Text('Please select a image.'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            debugPrint('[dialogForValid] Received OK');
+            Navigator.pop(context, false);
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    );
+
     // final AlertDialog dialog_with_options = AlertDialog(
     //   title: const Text('Title'),
     //   contentPadding: EdgeInsets.zero,
@@ -101,7 +166,7 @@ class MyStatelessWidget extends StatelessWidget {
           itemCount: 1,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 1, //1 개의 행에 보여줄 item 개수
-            childAspectRatio: 1 / 2, //item 의 가로 1, 세로 2 의 비율
+            childAspectRatio: 1 / 3, //item 의 가로 1, 세로 2 의 비율
             mainAxisSpacing: 20, //수평 Padding
             crossAxisSpacing: 20, //수직 Padding
           ),
@@ -111,7 +176,7 @@ class MyStatelessWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(4),
                 mainAxisSpacing: 4,
                 crossAxisSpacing: 4,
-                children: _buildGridTileList(10));
+                children: _buildGridTileList(_picCounts));
           },
         )),
         Material(
@@ -135,7 +200,12 @@ class MyStatelessWidget extends StatelessWidget {
         OutlinedButton(
           onPressed: () {
             debugPrint('[OutlinedButton] Received click');
-            showDialog<void>(context: context, builder: (context) => dialog);
+            if (_selectedPicNum == -1) {
+              showDialog<void>(
+                  context: context, builder: (context) => dialogForValid);
+            } else {
+              showDialog<void>(context: context, builder: (context) => dialog);
+            }
           },
           child: const Text('Submit'),
         ),
@@ -145,17 +215,26 @@ class MyStatelessWidget extends StatelessWidget {
 }
 
 class FullScreenDialog extends StatelessWidget {
-  const FullScreenDialog({Key? key}) : super(key: key);
+  const FullScreenDialog({Key? key, required this.picNum}) : super(key: key);
+  final int picNum;
+
   @override
   Widget build(BuildContext context) {
+    debugPrint("[FullScreenDialog] result: ${picNum.toString()}th pic");
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF6200EE),
         title: const Text('Result'),
       ),
-      body: const Center(
-        child: Text('This is result. Enjoy app!'),
-      ),
+      body: Center(
+          child: Column(
+        children: [
+          const Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Text("This is result. Enjoy app!\nemotion: 편안/안정")),
+          Image.asset('images/pic$picNum.jpg', width: 300),
+        ],
+      )),
     );
   }
 }
