@@ -34,9 +34,66 @@ class MyStatelessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AlertDialog dialog = AlertDialog(
+      title: const Text('Alert'),
+      content: const Text('Are you sure to submit the selected image?'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            debugPrint('[AlertDialog] Received cancel');
+          },
+          child: const Text('CANCEL'),
+        ),
+        TextButton(
+          onPressed: () {
+            debugPrint('[AlertDialog] Received submit');
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const FullScreenDialog(),
+                fullscreenDialog: true,
+              ),
+            );
+          },
+          child: const Text('SUBMIT'),
+        ),
+      ],
+    );
+    // final AlertDialog dialog_with_options = AlertDialog(
+    //   title: const Text('Title'),
+    //   contentPadding: EdgeInsets.zero,
+    //   content: Column(
+    //     mainAxisSize: MainAxisSize.min,
+    //     children: [
+    //       for (int i = 1; i <= 3; i++)
+    //         ListTile(
+    //           title: Text(
+    //             'option $i',
+    //             style: Theme.of(context).textTheme.subtitle1,
+    //           ),
+    //           leading: Radio(
+    //             value: i,
+    //             groupValue: 1,
+    //             onChanged: (_) {},
+    //           ),
+    //         ),
+    //     ],
+    //   ),
+    //   actions: [
+    //     TextButton(
+    //       onPressed: () => Navigator.pop(context),
+    //       child: const Text('ACTION 1'),
+    //     ),
+    //     TextButton(
+    //       onPressed: () => Navigator.pop(context),
+    //       child: const Text('ACTION 2'),
+    //     ),
+    //   ],
+    // );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Expanded(
             child: GridView.builder(
           shrinkWrap: true,
@@ -57,65 +114,48 @@ class MyStatelessWidget extends StatelessWidget {
                 children: _buildGridTileList(10));
           },
         )),
+        Material(
+          color: Colors.white,
+          child: Center(
+            child: Ink(
+              decoration: const ShapeDecoration(
+                color: Colors.lightBlue,
+                shape: CircleBorder(),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.add_a_photo_outlined),
+                color: Colors.white,
+                onPressed: () {
+                  debugPrint('[IconButton] Received click');
+                },
+              ),
+            ),
+          ),
+        ),
         OutlinedButton(
           onPressed: () {
-            debugPrint('Received click');
+            debugPrint('[OutlinedButton] Received click');
+            showDialog<void>(context: context, builder: (context) => dialog);
           },
-          child: const Text('Click Me'),
+          child: const Text('Submit'),
         ),
       ],
     );
   }
 }
 
-// // The images are saved with names pic0.jpg, pic1.jpg...pic29.jpg.
-// // The List.generate() constructor allows an easy way to create
-// // a list when objects have a predictable naming pattern.
-// List<Container> _buildGridTileList(int count) => List.generate(
-//     count, (i) => Container(child: Image.asset('images/pic$i.jpg')));
-// // #enddocregion grid
-
-
-// // #docregion grid
-// Widget _buildGrid() => GridView.extent(
-//     maxCrossAxisExtent: 300,
-//     padding: const EdgeInsets.all(4),
-//     mainAxisSpacing: 4,
-//     crossAxisSpacing: 4,
-//     children: _buildGridTileList(10));
-
-// // #docregion list
-// Widget _buildList() {
-//   return ListView(
-//     children: [
-//       _tile('CineArts at the Empire', '85 W Portal Ave', Icons.theaters),
-//       _tile('The Castro Theater', '429 Castro St', Icons.theaters),
-//       _tile('Alamo Drafthouse Cinema', '2550 Mission St', Icons.theaters),
-//       _tile('Roxie Theater', '3117 16th St', Icons.theaters),
-//       _tile('United Artists Stonestown Twin', '501 Buckingham Way',
-//           Icons.theaters),
-//       _tile('AMC Metreon 16', '135 4th St #3000', Icons.theaters),
-//       const Divider(),
-//       _tile('K\'s Kitchen', '757 Monterey Blvd', Icons.restaurant),
-//       _tile('Emmy\'s Restaurant', '1923 Ocean Ave', Icons.restaurant),
-//       _tile('Chaiya Thai Restaurant', '272 Claremont Blvd', Icons.restaurant),
-//       _tile('La Ciccia', '291 30th St', Icons.restaurant),
-//     ],
-//   );
-// }
-
-// ListTile _tile(String title, String subtitle, IconData icon) {
-//   return ListTile(
-//     title: Text(title,
-//         style: const TextStyle(
-//           fontWeight: FontWeight.w500,
-//           fontSize: 20,
-//         )),
-//     subtitle: Text(subtitle),
-//     leading: Icon(
-//       icon,
-//       color: Colors.blue[500],
-//     ),
-//   );
-// }
-// // #enddocregion list
+class FullScreenDialog extends StatelessWidget {
+  const FullScreenDialog({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF6200EE),
+        title: const Text('Result'),
+      ),
+      body: const Center(
+        child: Text('This is result. Enjoy app!'),
+      ),
+    );
+  }
+}
