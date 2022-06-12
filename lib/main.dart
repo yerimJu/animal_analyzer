@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   debugPaintSizeEnabled = false; // Set to true for visual layout
@@ -46,6 +48,16 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
     debugPrint("[_setPicNum] ${_selectedPicNum.toString()}");
   }
 
+  final ImagePicker _picker = ImagePicker();
+  XFile? _image;
+
+  Future _getImage() async {
+    XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _image = image;
+    });
+  }
+
   List<Container> _buildGridTileList(int count) => List.generate(
       count,
       (i) => Container(
@@ -54,30 +66,57 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
                 // debugPrint('[_buildGridTileList] Received click from pic$i');
                 _setPicNum(i);
               },
-              child: Ink.image(
-                image: AssetImage('images/pic$i.jpg'),
-                fit: BoxFit.cover,
-                child: _selectedPicNum == i
-                    ? InkWell(
-                        onTap: () {
-                          debugPrint("[InkWell] clicked ${i}th img");
-                        },
-                        child: const Align(
-                          child: Padding(
-                            padding: EdgeInsets.all(10.0),
-                            child: Text(
-                              'SELECTED',
-                              style: TextStyle(
-                                fontSize: 50,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
+              child: i == 0
+                  ? _image == null
+                      ? const Text(
+                          "No Image",
+                          style: TextStyle(
+                            fontSize: 50,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Ink.image(
+                          image: Image.file(File(_image!.path)).image,
+                          fit: BoxFit.cover,
+                          child: const Align(
+                            child: Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Text(
+                                'SELECTED',
+                                style: TextStyle(
+                                  fontSize: 50,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      )
-                    : null,
-              ))));
+                        )
+                  : Ink.image(
+                      image: AssetImage('images/pic$i.jpg'),
+                      fit: BoxFit.cover,
+                      child: _selectedPicNum == i
+                          ? InkWell(
+                              onTap: () {
+                                debugPrint("[InkWell] clicked ${i}th img");
+                              },
+                              child: const Align(
+                                child: Padding(
+                                  padding: EdgeInsets.all(10.0),
+                                  child: Text(
+                                    'SELECTED',
+                                    style: TextStyle(
+                                      fontSize: 50,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : null,
+                    ))));
 
   @override
   Widget build(BuildContext context) {
@@ -190,8 +229,9 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
               child: IconButton(
                 icon: const Icon(Icons.add_a_photo_outlined),
                 color: Colors.white,
-                onPressed: () {
+                onPressed: () async {
                   debugPrint('[IconButton] Received click');
+                  _getImage();
                 },
               ),
             ),
