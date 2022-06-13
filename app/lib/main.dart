@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+// import 'package:image_picker/image_picker.dart';
+
+String testImageURL =
+    "https://images.theconversation.com/files/443350/original/file-20220131-15-1ndq1m6.jpg?ixlib=rb-1.1.0&rect=0%2C0%2C3354%2C2464&q=45&auto=format&w=926&fit=clip";
 
 void main() {
   debugPaintSizeEnabled = false; // Set to true for visual layout
@@ -39,7 +41,11 @@ class MyStatefulWidget extends StatefulWidget {
 class MyStatelessWidget extends State<MyStatefulWidget> {
   // const MyStatelessWidget({Key? key}) : super(key: key);
   static const _picCounts = 10;
+  static final TextEditingController _textFieldController =
+      TextEditingController();
   int _selectedPicNum = -1;
+  String valueText = "";
+  String imageInputURL = "";
 
   void _setPicNum(i) {
     setState(() {
@@ -48,15 +54,15 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
     debugPrint("[_setPicNum] ${_selectedPicNum.toString()}");
   }
 
-  final ImagePicker _picker = ImagePicker();
-  XFile? _image;
+  // final ImagePicker _picker = ImagePicker();
+  // XFile? _image;
 
-  Future _getImage() async {
-    XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _image = image;
-    });
-  }
+  // Future _getImage() async {
+  //   XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+  //   setState(() {
+  //     _image = image;
+  //   });
+  // }
 
   List<Container> _buildGridTileList(int count) => List.generate(
       count,
@@ -67,32 +73,61 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
                 _setPicNum(i);
               },
               child: i == 0
-                  ? _image == null
-                      ? const Text(
-                          "No Image",
+                  ? imageInputURL == ""
+                      ?
+                      // Material(
+                      //     color: Colors.white,
+                      //     child: Center(
+                      //       child: Ink(
+                      //         decoration: const ShapeDecoration(
+                      //           color: Colors.lightBlue,
+                      //           shape: CircleBorder(),
+                      //         ),
+                      //         child: IconButton(
+                      //           icon: const Icon(Icons.add_a_photo_outlined),
+                      //           color: Colors.white,
+                      //           onPressed: () async {
+                      //             debugPrint('[IconButton] Received click');
+                      //             // _getImage();
+                      //             // _displayTextInputDialog(context);
+                      //           },
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   )
+                      const Text(
+                          "Please enter an image URL",
                           style: TextStyle(
-                            fontSize: 50,
+                            fontSize: 20,
                             fontWeight: FontWeight.w900,
-                            color: Colors.grey,
+                            color: Colors.black,
                           ),
                         )
                       : Ink.image(
-                          image: Image.file(File(_image!.path)).image,
+                          // image: Image.file(File(_image!.path)).image,
+                          // image: Image.network(imageInputURL).image,
+                          image: Image.network(testImageURL).image,
                           fit: BoxFit.cover,
-                          child: const Align(
-                            child: Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: Text(
-                                'SELECTED',
-                                style: TextStyle(
-                                  fontSize: 50,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
+                          child: _selectedPicNum == i
+                              ? InkWell(
+                                  onTap: () {
+                                    debugPrint("[InkWell] clicked ${i}th img");
+                                  },
+                                  child: const Align(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(10.0),
+                                      child: Text(
+                                        'SELECTED',
+                                        style: TextStyle(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : null)
                   : Ink.image(
                       image: AssetImage('images/pic$i.jpg'),
                       fit: BoxFit.cover,
@@ -107,7 +142,7 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
                                   child: Text(
                                     'SELECTED',
                                     style: TextStyle(
-                                      fontSize: 50,
+                                      fontSize: 30,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.white70,
                                     ),
@@ -120,6 +155,40 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final AlertDialog textInputDialog = AlertDialog(
+      title: const Text('Text Field'),
+      content: TextField(
+          onChanged: (value) {
+            // debugPrint('[textInputDialog] Received ${value}');
+            setState(() {
+              valueText = value;
+            });
+          },
+          controller: _textFieldController,
+          decoration:
+              const InputDecoration(hintText: "Please enter an image URL.")),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('CANCEL'),
+          onPressed: () {
+            setState(() {
+              Navigator.pop(context);
+            });
+          },
+        ),
+        TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            debugPrint('[textInputDialog] Received ${valueText}');
+            setState(() {
+              imageInputURL = valueText;
+              Navigator.pop(context);
+            });
+          },
+        ),
+      ],
+    );
+
     final AlertDialog dialog = AlertDialog(
       title: const Text('Alert'),
       content: const Text('Are you sure to submit the selected image?'),
@@ -195,6 +264,14 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
     //   ],
     // );
 
+    Future<void> _displayTextInputDialog(BuildContext context) async {
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return textInputDialog;
+          });
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -231,13 +308,16 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
                 color: Colors.white,
                 onPressed: () async {
                   debugPrint('[IconButton] Received click');
-                  _getImage();
+                  // _getImage();
+                  _displayTextInputDialog(context);
                 },
               ),
             ),
           ),
         ),
-        OutlinedButton(
+        TextButton(
+          style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.white)),
           onPressed: () {
             debugPrint('[OutlinedButton] Received click');
             if (_selectedPicNum == -1) {
@@ -272,7 +352,9 @@ class FullScreenDialog extends StatelessWidget {
           const Padding(
               padding: EdgeInsets.all(10.0),
               child: Text("This is result. Enjoy app!\nemotion: 편안/안정")),
-          Image.asset('images/pic$picNum.jpg', width: 300),
+          picNum == 0
+              ? Image.network(testImageURL)
+              : Image.asset('images/pic$picNum.jpg', width: 300),
         ],
       )),
     );
