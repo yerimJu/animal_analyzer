@@ -95,14 +95,16 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
                       //       ),
                       //     ),
                       //   )
-                      const Text(
+                      const Center(
+                          child: Text(
                           "Please enter an image URL",
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.black,
                           ),
-                        )
+                        ))
                       : Ink.image(
                           // image: Image.file(File(_image!.path)).image,
                           // image: Image.network(imageInputURL).image,
@@ -179,11 +181,30 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
         TextButton(
           child: const Text('OK'),
           onPressed: () {
-            debugPrint('[textInputDialog] Received ${valueText}');
-            setState(() {
-              imageInputURL = valueText;
-              Navigator.pop(context);
-            });
+            if (valueText.isEmpty) {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                    builder: (BuildContext context) => AlertDialog(
+                          title: const Text('Alert'),
+                          content: const Text('Please enter a URL.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context, false);
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        )),
+              );
+            } else {
+              debugPrint('[textInputDialog] Received ${valueText}');
+              setState(() {
+                imageInputURL = valueText;
+                Navigator.pop(context);
+              });
+            }
           },
         ),
       ],
@@ -272,65 +293,69 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
           });
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Expanded(
-            child: GridView.builder(
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
-          itemCount: 1,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1, //1 개의 행에 보여줄 item 개수
-            childAspectRatio: 1 / 3, //item 의 가로 1, 세로 2 의 비율
-            mainAxisSpacing: 20, //수평 Padding
-            crossAxisSpacing: 20, //수직 Padding
-          ),
-          itemBuilder: (BuildContext context, int index) {
-            return GridView.extent(
-                maxCrossAxisExtent: 300,
-                padding: const EdgeInsets.all(4),
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
-                children: _buildGridTileList(_picCounts));
-          },
-        )),
-        Material(
-          color: Colors.white,
-          child: Center(
-            child: Ink(
-              decoration: const ShapeDecoration(
-                color: Colors.lightBlue,
-                shape: CircleBorder(),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.add_a_photo_outlined),
-                color: Colors.white,
-                onPressed: () async {
-                  debugPrint('[IconButton] Received click');
-                  // _getImage();
-                  _displayTextInputDialog(context);
-                },
+    return Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+      Expanded(
+          child: GridView.builder(
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
+        itemCount: 1,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 1, //1 개의 행에 보여줄 item 개수
+          childAspectRatio: 1, //item 의 가로 1, 세로 2 의 비율
+          mainAxisSpacing: 20, //수평 Padding
+          crossAxisSpacing: 20, //수직 Padding
+        ),
+        itemBuilder: (BuildContext context, int index) {
+          return GridView.extent(
+              maxCrossAxisExtent: 300,
+              padding: const EdgeInsets.all(4),
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+              children: _buildGridTileList(_picCounts));
+        },
+      )),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Material(
+            color: Colors.white,
+            child: Center(
+              child: Ink(
+                decoration: const ShapeDecoration(
+                  color: Colors.lightBlue,
+                  shape: CircleBorder(),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  color: Colors.white,
+                  onPressed: () async {
+                    debugPrint('[IconButton] Received click');
+                    // _getImage();
+                    _displayTextInputDialog(context);
+                  },
+                ),
               ),
             ),
           ),
-        ),
-        TextButton(
-          style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.white)),
-          onPressed: () {
-            debugPrint('[OutlinedButton] Received click');
-            if (_selectedPicNum == -1) {
-              showDialog<void>(
-                  context: context, builder: (context) => dialogForValid);
-            } else {
-              showDialog<void>(context: context, builder: (context) => dialog);
-            }
-          },
-          child: const Text('Submit'),
-        ),
-      ],
-    );
+          TextButton(
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.white10)),
+            onPressed: () {
+              debugPrint('[OutlinedButton] Received click');
+              if (_selectedPicNum == -1 ||
+                  (_selectedPicNum == 0 && imageInputURL.isEmpty)) {
+                showDialog<void>(
+                    context: context, builder: (context) => dialogForValid);
+              } else {
+                showDialog<void>(
+                    context: context, builder: (context) => dialog);
+              }
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      )
+    ]);
   }
 }
 
@@ -351,10 +376,10 @@ class FullScreenDialog extends StatelessWidget {
         children: [
           const Padding(
               padding: EdgeInsets.all(10.0),
-              child: Text("This is result. Enjoy app!\nemotion: 편안/안정")),
+              child: Text("This is result. Enjoy app!\nEmotion: 편안/안정")),
           picNum == 0
-              ? Image.network(testImageURL)
-              : Image.asset('images/pic$picNum.jpg', width: 300),
+              ? Image.network(testImageURL, width: 500)
+              : Image.asset('images/pic$picNum.jpg', width: 500),
         ],
       )),
     );
