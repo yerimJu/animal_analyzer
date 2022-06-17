@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintSizeEnabled;
-// import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 String testImageURL =
     "https://images.theconversation.com/files/443350/original/file-20220131-15-1ndq1m6.jpg?ixlib=rb-1.1.0&rect=0%2C0%2C3354%2C2464&q=45&auto=format&w=926&fit=clip";
@@ -46,6 +47,7 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
   int _selectedPicNum = -1;
   String valueText = "";
   String imageInputURL = "";
+  String result = "";
 
   void _setPicNum(i) {
     setState(() {
@@ -107,8 +109,8 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
                         ))
                       : Ink.image(
                           // image: Image.file(File(_image!.path)).image,
-                          // image: Image.network(imageInputURL).image,
-                          image: Image.network(testImageURL).image,
+                          image: Image.network(imageInputURL).image,
+                          // image: Image.network(testImageURL).image,
                           fit: BoxFit.cover,
                           child: _selectedPicNum == i
                               ? InkWell(
@@ -200,7 +202,7 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
               );
             } else {
               debugPrint('[textInputDialog] Received ${valueText}');
-              setState(() {
+              setState(() async {
                 imageInputURL = valueText;
                 Navigator.pop(context);
               });
@@ -222,14 +224,25 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
           child: const Text('CANCEL'),
         ),
         TextButton(
-          onPressed: () {
+          onPressed: () async {
             debugPrint('[AlertDialog] Received submit');
+
+            final url = Uri.parse(
+                'http://127.0.0.1:8000/cat_analyzer/?img_src=${imageInputURL}');
+            debugPrint('[textInputDialog] Received ${url.toString()}');
+            final response = await http.get(url);
+            Map<String, dynamic> result =
+                jsonDecode(utf8.decode(response.bodyBytes));
+            debugPrint('[textInputDialog] Received ${result["emotion"]}');
+
             Navigator.pop(context, false);
             Navigator.push(
               context,
               MaterialPageRoute<void>(
-                builder: (BuildContext context) =>
-                    FullScreenDialog(picNum: _selectedPicNum),
+                builder: (BuildContext context) => FullScreenDialog(
+                    picNum: _selectedPicNum,
+                    imageInputURL: imageInputURL,
+                    result: result["emotion"]),
                 fullscreenDialog: true,
               ),
             );
@@ -360,8 +373,15 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
 }
 
 class FullScreenDialog extends StatelessWidget {
-  const FullScreenDialog({Key? key, required this.picNum}) : super(key: key);
+  const FullScreenDialog(
+      {Key? key,
+      required this.picNum,
+      required this.imageInputURL,
+      required this.result})
+      : super(key: key);
   final int picNum;
+  final String imageInputURL;
+  final String result;
 
   @override
   Widget build(BuildContext context) {
@@ -374,11 +394,11 @@ class FullScreenDialog extends StatelessWidget {
       body: Center(
           child: Column(
         children: [
-          const Padding(
-              padding: EdgeInsets.all(10.0),
-              child: Text("This is result. Enjoy app!\nEmotion: 편안/안정")),
+          Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text("This is result. Enjoy app!\nEmotion: ${result}")),
           picNum == 0
-              ? Image.network(testImageURL, width: 500)
+              ? Image.network(imageInputURL, width: 500)
               : Image.asset('images/pic$picNum.jpg', width: 500),
         ],
       )),

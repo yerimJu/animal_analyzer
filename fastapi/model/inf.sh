@@ -1,0 +1,1 @@
+python inference.py --weight_path "3-1.56-0.50.h5" --input_size 224 --classes 6 --label "model.json"
