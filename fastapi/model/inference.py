@@ -12,7 +12,6 @@ import numpy as np
 
 from model.utils import open_json
 from model.model import PetModel
-import pdb
 
 class Inference:
     def __init__(self, args):
@@ -23,8 +22,6 @@ class Inference:
         self.model.load_weights(args['weight_path'])
     
     def _get_normal_image(self, url):
-        
-        #image_nparray = np.asarray(bytearray(requests.get(url).content), dtype=np.uint8)
         resp = urllib.request.urlopen(url)
         image_nparray = np.asarray(bytearray(resp.read()), dtype=np.uint8)
         image = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
@@ -33,13 +30,12 @@ class Inference:
     def preprocess(self, input_data):
         if isinstance(input_data, str):
             # str, image_path
-            # input_data = tf.io.read_file(input_data)
-            # input_data = tf.io.decode_jpeg(input_data)
-
             if "http" in input_data:
                 input_data = self._get_normal_image(input_data)
             else:
-                input_data = cv2.imread(input_data)
+                # input_data = cv2.imread(input_data)
+                input_data = tf.io.read_file(input_data)
+                input_data = tf.io.decode_jpeg(input_data)
  
             
         elif isinstance(input_data, Image.Image):

@@ -202,7 +202,7 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
               );
             } else {
               debugPrint('[textInputDialog] Received ${valueText}');
-              setState(() async {
+              setState(() {
                 imageInputURL = valueText;
                 Navigator.pop(context);
               });
@@ -227,9 +227,30 @@ class MyStatelessWidget extends State<MyStatefulWidget> {
           onPressed: () async {
             debugPrint('[AlertDialog] Received submit');
 
-            final url = Uri.parse(
-                'http://127.0.0.1:8000/cat_analyzer/?img_src=${imageInputURL}');
+            final Uri url;
+            if (_selectedPicNum == 0 && imageInputURL.isNotEmpty) {
+              url = Uri.parse(
+                  'http://127.0.0.1:8000/cat_analyzer/?img_src=${imageInputURL}');
+            } else {
+              url = Uri.parse(
+                  'http://127.0.0.1:8000/cat_analyzer/?img_src=C:\\Users\\thdck\\OneDrive\\바탕 화면\\animal_analyzer\\fastapi\\model\\res\\pic${_selectedPicNum}.jpg');
+            }
             debugPrint('[textInputDialog] Received ${url.toString()}');
+
+            Navigator.pop(context, false);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => Dialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text("Loading..."),
+                              const CircularProgressIndicator(),
+                            ],
+                          ),
+                        )));
+
             final response = await http.get(url);
             Map<String, dynamic> result =
                 jsonDecode(utf8.decode(response.bodyBytes));
